@@ -98,18 +98,14 @@ public abstract class EarleyParser<E, R>
 
 	private void init(String startRule)
 	{
-		symbol = null;
+		symbol     = null;
+		currentSet = 0;
 		states.clear();
 
-		// Start with a separator so that the zero state is a separator.
-		addSeparator();
-
 		// Create a single top level rule. It's a special rule that accepts the EOF marker.
-		currentSet = states.size();
+		addSeparator();
+		currentSet = 1;
 		addState(new EarleyRule<E, R>("YYSTART", new String[] {startRule, "EOF"}, null), 0, currentSet, 0, 0);
-
-		for ( EarleyRule<E, R> rule : rules.get(startRule) )
-			addState(rule, 0, 0, 0, 0);
 
 		closure();
 	}
@@ -191,6 +187,7 @@ public abstract class EarleyParser<E, R>
 			changed = states.size() - currentSet;
 		} while ( changed > 0 && !symbol.symbol.equals(ILexer.EOF) );
 
+		// Check for potential problems.
 		if ( changed == 0 )
 			parseError(lexer);
 
@@ -237,13 +234,7 @@ public abstract class EarleyParser<E, R>
 
 	public R exec(E env)
 	{
-		int i = states.size() - 1;
-		EarleyState<E, R> initialState = states.get(i);
-
-		if ( !initialState.complete() )
-			; // TODO: error.
-
-		return exec(env, i);
+		return exec(env, states.size() - 1);
 	}
 
 
