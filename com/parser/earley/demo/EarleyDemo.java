@@ -21,8 +21,6 @@
 package com.parser.earley.demo;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.lexer.ILexer;
 import com.lexer.Symbol;
@@ -33,6 +31,11 @@ import com.parser.earley.IEarleyAction;
 
 public class EarleyDemo extends EarleyParser<Object, Integer>
 {
+	// Just to save on typing the actions. (avoid copying the generic definitions)
+	private static abstract class TestAction implements IEarleyAction<Object, Integer>
+	{
+	}
+
 
 	protected Integer textToResult(final Symbol symbol)
 	{
@@ -43,7 +46,7 @@ public class EarleyDemo extends EarleyParser<Object, Integer>
 
 	public static void main(String[] args) throws EarleyException
 	{
-		TestLexer                     lex = new TestLexer("25 + 67 * -(5 - 8 + 16*3) * (16 - 3)");
+		ILexer                        lex = new LexerDemo("(25 + 67 - 4*9) * -(5 - 8 + 16*3) * (11 - 3)");
 		EarleyParser<Object, Integer> e   = new EarleyDemo();
 
 		e.addRule("atom",      new String[] {"num"});
@@ -59,71 +62,8 @@ public class EarleyDemo extends EarleyParser<Object, Integer>
 		e.addRule("start",     new String[] {"expr"});
 
 		e.parse("start", lex);
-		//e.dumpStates();
 
 		Integer r = e.exec("");
 		System.out.println(r);
 	}
-}
-
-
-// Just to save on typing the actions. (avoid copying the generic definitions)
-abstract class TestAction implements IEarleyAction<Object, Integer>
-{
-}
-
-
-// Very crude and rudimentary lexical analyzer. You'd want to use another :)
-class TestLexer implements ILexer
-{
-	private Pattern psp;
-	private Pattern pnum;
-	private Pattern pop;
-
-	private String  text;
-
-
-	public TestLexer(String text)
-	{
-		this.text = text;
-
-		this.psp  = Pattern.compile("^\\s+(.*)$", Pattern.DOTALL);
-		this.pnum = Pattern.compile("^(\\d+)(.*)$", Pattern.DOTALL);
-		this.pop  = Pattern.compile("^([\\+\\-\\*\\/\\(\\)])(.*)$", Pattern.DOTALL);
-	}
-
-
-	@Override
-	public Symbol nextSymbol()
-	{
-		Matcher m;
-
-		// Skip the whitespaces.
-		m = psp.matcher(text);
-		if ( m.find() )
-			text = m.group(1);
-
-		// We consumed the entire input.
-		if ( text.length() == 0 )
-			return new Symbol(ILexer.EOF, null);
-
-		m = pnum.matcher(text);
-		if ( m.find() )
-		{
-			// Number.
-			text = m.group(2);
-			return new Symbol("num", m.group(1));
-		}
-
-		m = pop.matcher(text);
-		if ( m.find() )
-		{
-			// Operator.
-			text = m.group(2);
-			return new Symbol(m.group(1), null);
-		}
-
-		return null;
-	}
-	
 }
