@@ -113,15 +113,20 @@ public abstract class EarleyParser<E, R>
 
 	private void closure()
 	{
-		for ( int i = currentSet; i < states.size(); ++i )
-		{
-			EarleyState<E, R> state = states.get(i);
+		int top;
 
-			if ( state.complete() )
-				complete(i);
-			else if ( !terminal(state.current()) )
-				predict(i);
-		}
+		do {
+			top = states.size();
+			for ( int i = currentSet; i < states.size(); ++i )
+			{
+				EarleyState<E, R> state = states.get(i);
+	
+				if ( state.complete() )
+					complete(i);
+				else if ( !terminal(state.current()) )
+					predict(i);
+			}
+		} while ( top != states.size() );
 	}
 
 
