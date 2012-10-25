@@ -146,7 +146,7 @@ public abstract class EarleyParser<E, R>
 		int               j     = state.back;
 		String            lhs   = state.rule.lhs;
 
-		for ( ; !states.get(j).seperator(); ++j )
+		for ( ; j < states.size() && !states.get(j).seperator(); ++j )
 		{
 			EarleyState<E, R> pstate = states.get(j);
 
